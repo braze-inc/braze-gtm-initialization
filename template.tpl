@@ -14,6 +14,11 @@ ___INFO___
   "version": 1,
   "securityGroups": [],
   "displayName": "Braze Initialization Tag",
+  "categories": [
+    "MARKETING",
+    "ANALYTICS",
+    "PERSONALIZATION"
+  ],
   "brand": {
     "id": "",
     "displayName": "Braze",
