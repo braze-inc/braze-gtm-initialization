@@ -1,5 +1,5 @@
 homepage: "https://www.braze.com/"
 documentation: "https://github.com/braze-inc/braze-gtm-initialization"
 versions:
-  - sha: 985aabad95cdd084659e78e349b8c5175f0fd976
-    changeNotes: v1.0.0 - initial release
+  - sha: 72e1433f15f3cba3e5bde0e31a40cce302550f37
+    changeNotes: Initial Version
