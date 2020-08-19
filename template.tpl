@@ -62,9 +62,9 @@ ___TEMPLATE_PARAMETERS___
   {
     "type": "TEXT",
     "name": "sdkVersion",
-    "displayName": "The sdk version (default 2.6)",
+    "displayName": "SDK Version",
     "simpleValueType": true,
-    "defaultValue": 2.6
+    "defaultValue": "3.0"
   },
   {
     "type": "TEXT",
@@ -195,9 +195,10 @@ const copyFromWindow = require('copyFromWindow');
 const injectScript = require('injectScript');
 const callInWindow = require('callInWindow');
 const queryPermission = require('queryPermission');
+const encodeUriComponent = require('encodeUriComponent');
 
 // Install the corresponding version of SDK (from user input)
-const url = 'https://js.appboycdn.com/web-sdk/'+ data.sdkVersion +'/appboy.min.js';
+const url = 'https://js.appboycdn.com/web-sdk/' + encodeUriComponent(data.sdkVersion) + '/appboy.min.js';
 const message = 'Braze: ';
 
 const log = data.debug ? logToConsole : (() => {});
@@ -629,8 +630,8 @@ scenarios:
 
 - name: Load the script with corresponding sdk version as user provided
   code: |-
-    mockData.sdkVersion = '2.5';
-    const url = 'https://js.appboycdn.com/web-sdk/2.5/appboy.min.js';
+    mockData.sdkVersion = '3.0';
+    const url = 'https://js.appboycdn.com/web-sdk/3.0/appboy.min.js';
     runCode(mockData);
 
     // Verify that the tag finished successfully.
@@ -951,6 +952,7 @@ scenarios:
     assertApi('gtmOnSuccess').wasCalled();
 setup: |-
   const log = require('logToConsole');
+  const encodeUriComponent = require('encodeUriComponent');
   const mockData = {
     // Mocked field values
     apiKey:'26a39c72-e647-4766-b62e-4521fa2dae59',
@@ -958,7 +960,7 @@ setup: |-
     baseUrl: 'testExample.com'
   };
 
-  const scriptUrl = 'https://js.appboycdn.com/web-sdk/'+mockData.sdkVersion+'/appboy.min.js';
+  const scriptUrl = 'https://js.appboycdn.com/web-sdk/' + encodeUriComponent(mockData.sdkVersion) + '/appboy.min.js';
 
   const options = {};
   options.baseUrl = 'testExample.com';
