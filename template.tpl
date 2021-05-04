@@ -64,7 +64,7 @@ ___TEMPLATE_PARAMETERS___
     "name": "sdkVersion",
     "displayName": "SDK Version",
     "simpleValueType": true,
-    "defaultValue": "3.0"
+    "defaultValue": 3.2
   },
   {
     "type": "TEXT",
@@ -101,6 +101,14 @@ ___TEMPLATE_PARAMETERS___
     "checkboxText": "Enable GTM Template Debugging",
     "simpleValueType": true,
     "help": "This is for debugging the tag template"
+  },
+  {
+    "type": "CHECKBOX",
+    "name": "useNoAmdVersion",
+    "checkboxText": "Use No-AMD Version of SDK",
+    "simpleValueType": true,
+    "help": "Use this version of the SDK if your website uses RequireJS or another AMD framework that interferes with the ability of the SDK to be accessible by Google Tag Manager.",
+    "defaultValue": false
   },
   {
     "type": "GROUP",
@@ -198,7 +206,8 @@ const queryPermission = require('queryPermission');
 const encodeUriComponent = require('encodeUriComponent');
 
 // Install the corresponding version of SDK (from user input)
-const url = 'https://js.appboycdn.com/web-sdk/' + encodeUriComponent(data.sdkVersion) + '/appboy.min.js';
+const fileName = data.useNoAmdVersion ? 'appboy.no-amd.min.js' : 'appboy.min.js';
+const url = 'https://js.appboycdn.com/web-sdk/'+ encodeUriComponent(data.sdkVersion) +'/' + fileName;
 const message = 'Braze: ';
 
 const log = data.debug ? logToConsole : (() => {});
@@ -540,6 +549,10 @@ ___WEB_PERMISSIONS___
               {
                 "type": 1,
                 "string": "https://js.appboycdn.com/web-sdk/*/appboy.min.js"
+              },
+              {
+                "type": 1,
+                "string": "https://js.appboycdn.com/web-sdk/*/appboy.no-amd.min.js"
               }
             ]
           }
@@ -630,8 +643,8 @@ scenarios:
 
 - name: Load the script with corresponding sdk version as user provided
   code: |-
-    mockData.sdkVersion = '3.0';
-    const url = 'https://js.appboycdn.com/web-sdk/3.0/appboy.min.js';
+    mockData.sdkVersion = '2.7';
+    const url = 'https://js.appboycdn.com/web-sdk/2.7/appboy.min.js';
     runCode(mockData);
 
     // Verify that the tag finished successfully.
@@ -950,13 +963,25 @@ scenarios:
     // Verify that the tag finished successfully.
     assertApi('callInWindow').wasCalledWith('appboy.initialize', mockData.apiKey, options);
     assertApi('gtmOnSuccess').wasCalled();
+- name: Uses no-AMD version if useNoAmdVersion is set
+  code: |-
+    const noAmdUrl = 'https://js.appboycdn.com/web-sdk/3.2/appboy.no-amd.min.js';
+    mockData.useNoAmdVersion = true;
+
+    // Call runCode to run the template's code.
+    runCode(mockData);
+
+    // Verify that the tag finished successfully.
+    assertApi('injectScript').wasCalledWith(noAmdUrl, success, failure, noAmdUrl);
+    assertApi('gtmOnSuccess').wasCalled();
 setup: |-
   const log = require('logToConsole');
   const encodeUriComponent = require('encodeUriComponent');
+
   const mockData = {
     // Mocked field values
     apiKey:'26a39c72-e647-4766-b62e-4521fa2dae59',
-    sdkVersion:'2.6',
+    sdkVersion:'3.2',
     baseUrl: 'testExample.com'
   };
 
