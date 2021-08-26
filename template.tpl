@@ -1,4 +1,4 @@
-﻿___TERMS_OF_SERVICE___
+___TERMS_OF_SERVICE___
 
 By creating or modifying this file you agree to Google Tag Manager's Community
 Template Gallery Developer Terms of Service available at
@@ -153,6 +153,12 @@ ___TEMPLATE_PARAMETERS___
       },
       {
         "type": "CHECKBOX",
+        "name": "disableTracking",
+        "checkboxText": "Disable tracking",
+        "simpleValueType": true
+      },
+      {
+        "type": "CHECKBOX",
         "name": "noCookies",
         "checkboxText": "Disable Cookies",
         "simpleValueType": true,
@@ -216,8 +222,12 @@ const onSuccess = () => {
   log(message, 'Loaded Braze Web SDK from ' + url);
   const options = makeOptions();
 
+  if (data.disableTracking) {
+    callInWindow('appboy.stopWebTracking');
+  }
+
   // Initialize the appboy with api key and base url(from user input)
-    callInWindow('appboy.initialize', data.apiKey, options);
+  callInWindow('appboy.initialize', data.apiKey, options);
 
   // If a user ID is provided, call change user before start session
   if (data.userID) {
@@ -509,6 +519,45 @@ ___WEB_PERMISSIONS___
                   {
                     "type": 1,
                     "string": "appboy.display.automaticallyShowNewInAppMessages"
+                  },
+                  {
+                    "type": 8,
+                    "boolean": false
+                  },
+                  {
+                    "type": 8,
+                    "boolean": false
+                  },
+                  {
+                    "type": 8,
+                    "boolean": true
+                  }
+                ]
+              },
+              {
+                "type": 3,
+                "mapKey": [
+                  {
+                    "type": 1,
+                    "string": "key"
+                  },
+                  {
+                    "type": 1,
+                    "string": "read"
+                  },
+                  {
+                    "type": 1,
+                    "string": "write"
+                  },
+                  {
+                    "type": 1,
+                    "string": "execute"
+                  }
+                ],
+                "mapValue": [
+                  {
+                    "type": 1,
+                    "string": "appboy.stopWebTracking"
                   },
                   {
                     "type": 8,
@@ -973,6 +1022,24 @@ scenarios:
 
     // Verify that the tag finished successfully.
     assertApi('injectScript').wasCalledWith(noAmdUrl, success, failure, noAmdUrl);
+    assertApi('gtmOnSuccess').wasCalled();
+- name: Call stopWebTracking if user provided disableTracking
+  code: |
+    mockData.disableTracking = true;
+
+    runCode(mockData);
+
+    // Verify that the tag finished successfully.
+    assertApi('callInWindow').wasCalledWith('appboy.stopWebTracking');
+    assertApi('gtmOnSuccess').wasCalled();
+- name: Don't call stopWebTracking if user didn't provide disableTracking
+  code: |
+    mockData.disableTracking = false;
+
+    runCode(mockData);
+
+    // Verify that the tag finished successfully.
+    assertApi('callInWindow').wasNotCalledWith('appboy.stopWebTracking');
     assertApi('gtmOnSuccess').wasCalled();
 setup: |-
   const log = require('logToConsole');
