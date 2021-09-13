@@ -153,6 +153,14 @@ ___TEMPLATE_PARAMETERS___
       },
       {
         "type": "CHECKBOX",
+        "name": "disableTracking",
+        "checkboxText": "Disable Tracking",
+        "simpleValueType": true,
+        "help": "Sets a cookie that causes all subsequent calls to the Braze Web SDK to be ignored and all subsequent analytics to cease being sent to the Braze backend. This is useful for customer opt-outs.",
+        "defaultValue": false
+      },
+      {
+        "type": "CHECKBOX",
         "name": "noCookies",
         "checkboxText": "Disable Cookies",
         "simpleValueType": true,
@@ -216,19 +224,23 @@ const onSuccess = () => {
   log(message, 'Loaded Braze Web SDK from ' + url);
   const options = makeOptions();
 
-  // Initialize the appboy with api key and base url(from user input)
+  if (data.disableTracking) {
+    callInWindow('appboy.stopWebTracking');
+  } else {
+    // Initialize the appboy with api key and base url(from user input)
     callInWindow('appboy.initialize', data.apiKey, options);
 
-  // If a user ID is provided, call change user before start session
-  if (data.userID) {
-    callInWindow('appboy.changeUser', data.userID);
-  }
+    // If a user ID is provided, call change user before start session
+    if (data.userID) {
+      callInWindow('appboy.changeUser', data.userID);
+    }
 
-  if (data.automaticallyShowNewInAppMessages) {
-    callInWindow('appboy.display.automaticallyShowNewInAppMessages');
-  }
+    if (data.automaticallyShowNewInAppMessages) {
+      callInWindow('appboy.display.automaticallyShowNewInAppMessages');
+    }
 
-  callInWindow('appboy.openSession');
+    callInWindow('appboy.openSession');
+  }
   data.gtmOnSuccess();
 };
 
@@ -523,6 +535,45 @@ ___WEB_PERMISSIONS___
                     "boolean": true
                   }
                 ]
+              },
+              {
+                "type": 3,
+                "mapKey": [
+                  {
+                    "type": 1,
+                    "string": "key"
+                  },
+                  {
+                    "type": 1,
+                    "string": "read"
+                  },
+                  {
+                    "type": 1,
+                    "string": "write"
+                  },
+                  {
+                    "type": 1,
+                    "string": "execute"
+                  }
+                ],
+                "mapValue": [
+                  {
+                    "type": 1,
+                    "string": "appboy.stopWebTracking"
+                  },
+                  {
+                    "type": 8,
+                    "boolean": false
+                  },
+                  {
+                    "type": 8,
+                    "boolean": false
+                  },
+                  {
+                    "type": 8,
+                    "boolean": true
+                  }
+                ]
               }
             ]
           }
@@ -615,12 +666,11 @@ scenarios:
 - name: Test whether the initialization is successful
   code: |-
     // Call runCode to run the template's code.
-    const apiKey = '26a39c72-e647-4766-b62e-4521fa2dae59';
     runCode(mockData);
 
 
     // Verify that the tag finished successfully.
-    assertApi('callInWindow').wasCalledWith('appboy.initialize', apiKey, options);
+    assertApi('callInWindow').wasCalledWith('appboy.initialize', mockData.apiKey, options);
     assertApi('callInWindow').wasCalledWith('appboy.openSession');
     assertApi('gtmOnSuccess').wasCalled();
 - name: Call logToConsole if debug box is checked
@@ -974,13 +1024,35 @@ scenarios:
     // Verify that the tag finished successfully.
     assertApi('injectScript').wasCalledWith(noAmdUrl, success, failure, noAmdUrl);
     assertApi('gtmOnSuccess').wasCalled();
+- name: Call stopWebTracking if user provided disableTracking
+  code: |
+    mockData.disableTracking = true;
+
+    runCode(mockData);
+
+    // Verify that the tag finished successfully.
+    assertApi('callInWindow').wasCalledWith('appboy.stopWebTracking');
+    assertApi('callInWindow').wasNotCalledWith('appboy.initialize', mockData.apiKey, options);
+    assertApi('callInWindow').wasNotCalledWith('appboy.openSession');
+    assertApi('gtmOnSuccess').wasCalled();
+- name: Don't call stopWebTracking if user didn't provide disableTracking
+  code: |
+    mockData.disableTracking = false;
+
+    runCode(mockData);
+
+    // Verify that the tag finished successfully.
+    assertApi('callInWindow').wasNotCalledWith('appboy.stopWebTracking');
+    assertApi('callInWindow').wasCalledWith('appboy.initialize', mockData.apiKey, options);
+    assertApi('callInWindow').wasCalledWith('appboy.openSession');
+    assertApi('gtmOnSuccess').wasCalled();
 setup: |-
   const log = require('logToConsole');
   const encodeUriComponent = require('encodeUriComponent');
 
   const mockData = {
     // Mocked field values
-    apiKey:'26a39c72-e647-4766-b62e-4521fa2dae59',
+    apiKey:'my api key',
     sdkVersion:'3.2',
     baseUrl: 'testExample.com'
   };
