@@ -1,7 +1,5 @@
 homepage: "https://www.braze.com/"
 documentation: "https://github.com/braze-inc/braze-gtm-initialization"
 versions:
-  - sha: 9adc9277033d6e3d406a4f4db111a4a0d3cda01a
-    changeNotes: Add no-AMD option to template
-  - sha: 2b284ea2be678dc41e055326eb11c8e490e47450
-    changeNotes: 1.0.0 Initial Release
+  - sha: 72e1433f15f3cba3e5bde0e31a40cce302550f37
+    changeNotes: Initial Version
