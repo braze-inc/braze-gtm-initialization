@@ -3,3 +3,7 @@ documentation: "https://github.com/braze-inc/braze-gtm-initialization"
 versions:
   - sha: 56e1b69ca510305daf078f9b057102ddd6a520ab
     changeNotes: Add disable tracking option
+  - sha: 9adc9277033d6e3d406a4f4db111a4a0d3cda01a
+    changeNotes: Add no-AMD option to template
+  - sha: 2b284ea2be678dc41e055326eb11c8e490e47450
+    changeNotes: 1.0.0 Initial Release
