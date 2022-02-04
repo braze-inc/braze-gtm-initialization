@@ -1,6 +1,8 @@
 homepage: "https://www.braze.com/"
 documentation: "https://github.com/braze-inc/braze-gtm-initialization"
 versions:
+  - sha: 90d50545c915b51cc02ae65e630287a4d88c2c49
+    changeNotes: Adds support for SDK authentication and use no-amd version by default
   - sha: 56e1b69ca510305daf078f9b057102ddd6a520ab
     changeNotes: Add disable tracking option
   - sha: 9adc9277033d6e3d406a4f4db111a4a0d3cda01a
