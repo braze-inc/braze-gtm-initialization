@@ -64,7 +64,7 @@ ___TEMPLATE_PARAMETERS___
     "name": "sdkVersion",
     "displayName": "SDK Version",
     "simpleValueType": true,
-    "defaultValue": 3.2
+    "defaultValue": 3.5
   },
   {
     "type": "TEXT",
@@ -101,14 +101,6 @@ ___TEMPLATE_PARAMETERS___
     "checkboxText": "Enable GTM Template Debugging",
     "simpleValueType": true,
     "help": "This is for debugging the tag template"
-  },
-  {
-    "type": "CHECKBOX",
-    "name": "useNoAmdVersion",
-    "checkboxText": "Use No-AMD Version of SDK",
-    "simpleValueType": true,
-    "help": "Use this version of the SDK if your website uses RequireJS or another AMD framework that interferes with the ability of the SDK to be accessible by Google Tag Manager.",
-    "defaultValue": false
   },
   {
     "type": "GROUP",
@@ -168,6 +160,13 @@ ___TEMPLATE_PARAMETERS___
         "defaultValue": false
       },
       {
+        "type": "CHECKBOX",
+        "name": "enableSdkAuthentication",
+        "checkboxText": "Enable SDK Authentication",
+        "simpleValueType": true,
+        "defaultValue": false
+      },
+      {
         "type": "TEXT",
         "name": "minimumIntervalBetweenTriggerActionsInSeconds",
         "displayName": "Minimum Interval Between Triggered Messages",
@@ -212,9 +211,10 @@ const injectScript = require('injectScript');
 const callInWindow = require('callInWindow');
 const queryPermission = require('queryPermission');
 const encodeUriComponent = require('encodeUriComponent');
+const makeNumber = require('makeNumber');
 
 // Install the corresponding version of SDK (from user input)
-const fileName = data.useNoAmdVersion ? 'appboy.no-amd.min.js' : 'appboy.min.js';
+const fileName = 'appboy.no-amd.min.js';
 const url = 'https://js.appboycdn.com/web-sdk/'+ encodeUriComponent(data.sdkVersion) +'/' + fileName;
 const message = 'Braze: ';
 
@@ -229,6 +229,20 @@ const onSuccess = () => {
   } else {
     // Initialize the appboy with api key and base url(from user input)
     callInWindow('appboy.initialize', data.apiKey, options);
+
+    // check if we're on a version that supports addSdkMetadata
+    let supportsSdkMetadata = false;
+    const versions = data.sdkVersion.split('.');
+    if (versions.length > 1) {
+      const majorVersion = makeNumber(versions[0]);
+      const minorVersion = makeNumber(versions[1]);
+      if (majorVersion > 3 || (majorVersion === 3 && minorVersion >= 5)) {
+        supportsSdkMetadata = true;
+      }
+    }
+    if (supportsSdkMetadata) {
+      callInWindow('appboy.addSdkMetadata', ['gg', 'wcd']);
+    }
 
     // If a user ID is provided, call change user before start session
     if (data.userID) {
@@ -293,6 +307,10 @@ const makeOptions = () => {
 
   if (data.sessionTimeoutInSeconds) {
     options.sessionTimeoutInSeconds = data.sessionTimeoutInSeconds;
+  }
+
+  if (data.enableSdkAuthentication) {
+    options.enableSdkAuthentication = data.enableSdkAuthentication;
   }
 
   return options;
@@ -574,6 +592,45 @@ ___WEB_PERMISSIONS___
                     "boolean": true
                   }
                 ]
+              },
+              {
+                "type": 3,
+                "mapKey": [
+                  {
+                    "type": 1,
+                    "string": "key"
+                  },
+                  {
+                    "type": 1,
+                    "string": "read"
+                  },
+                  {
+                    "type": 1,
+                    "string": "write"
+                  },
+                  {
+                    "type": 1,
+                    "string": "execute"
+                  }
+                ],
+                "mapValue": [
+                  {
+                    "type": 1,
+                    "string": "appboy.addSdkMetadata"
+                  },
+                  {
+                    "type": 8,
+                    "boolean": true
+                  },
+                  {
+                    "type": 8,
+                    "boolean": false
+                  },
+                  {
+                    "type": 8,
+                    "boolean": true
+                  }
+                ]
               }
             ]
           }
@@ -694,7 +751,7 @@ scenarios:
 - name: Load the script with corresponding sdk version as user provided
   code: |-
     mockData.sdkVersion = '2.7';
-    const url = 'https://js.appboycdn.com/web-sdk/2.7/appboy.min.js';
+    const url = 'https://js.appboycdn.com/web-sdk/2.7/appboy.no-amd.min.js';
     runCode(mockData);
 
     // Verify that the tag finished successfully.
@@ -1013,17 +1070,6 @@ scenarios:
     // Verify that the tag finished successfully.
     assertApi('callInWindow').wasCalledWith('appboy.initialize', mockData.apiKey, options);
     assertApi('gtmOnSuccess').wasCalled();
-- name: Uses no-AMD version if useNoAmdVersion is set
-  code: |-
-    const noAmdUrl = 'https://js.appboycdn.com/web-sdk/3.2/appboy.no-amd.min.js';
-    mockData.useNoAmdVersion = true;
-
-    // Call runCode to run the template's code.
-    runCode(mockData);
-
-    // Verify that the tag finished successfully.
-    assertApi('injectScript').wasCalledWith(noAmdUrl, success, failure, noAmdUrl);
-    assertApi('gtmOnSuccess').wasCalled();
 - name: Call stopWebTracking if user provided disableTracking
   code: |
     mockData.disableTracking = true;
@@ -1046,6 +1092,79 @@ scenarios:
     assertApi('callInWindow').wasCalledWith('appboy.initialize', mockData.apiKey, options);
     assertApi('callInWindow').wasCalledWith('appboy.openSession');
     assertApi('gtmOnSuccess').wasCalled();
+- name: Calls addSdkMetadata if on a supported version
+  code: |-
+    mockData.sdkVersion = '3.5';
+
+    // Call runCode to run the template's code.
+    runCode(mockData);
+
+    // Verify that the tag finished successfully.
+    assertApi('callInWindow').wasCalledWith('appboy.addSdkMetadata', ['gg', 'wcd']);
+
+    mockData.sdkVersion = '3.10';
+
+    // Call runCode to run the template's code.
+    runCode(mockData);
+
+    // Verify that the tag finished successfully.
+    assertApi('callInWindow').wasCalledWith('appboy.addSdkMetadata', ['gg', 'wcd']);
+
+    mockData.sdkVersion = '4.0';
+
+    // Call runCode to run the template's code.
+    runCode(mockData);
+
+    // Verify that the tag finished successfully.
+    assertApi('callInWindow').wasCalledWith('appboy.addSdkMetadata', ['gg', 'wcd']);
+- name: Does not call addSdkMetadata if not on a supported version
+  code: |-
+    mockData.sdkVersion = '3.4';
+
+    // Call runCode to run the template's code.
+    runCode(mockData);
+
+    // Verify that the tag finished successfully.
+    assertApi('callInWindow').wasNotCalledWith('appboy.addSdkMetadata', ['gg', 'wcd']);
+
+    mockData.sdkVersion = '2.7';
+
+    // Call runCode to run the template's code.
+    runCode(mockData);
+
+    // Verify that the tag finished successfully.
+    assertApi('callInWindow').wasNotCalledWith('appboy.addSdkMetadata', ['gg', 'wcd']);
+- name: Do not set enableSdkAuthentication if user didn't check the box
+  code: |-
+    mock('callInWindow', function(method, apiKey, options) {
+      if (method === 'appboy.initialize') {
+          assertThat(options.enableSdkAuthentication).isUndefined();
+      }
+    });
+
+    runCode(mockData);
+
+
+    // Verify that the tag finished successfully.
+    assertApi('callInWindow').wasCalledWith('appboy.initialize', mockData.apiKey, options);
+    assertApi('gtmOnSuccess').wasCalled();
+- name: Set enableSdkAuthentication if user checks the box
+  code: |-
+    mockData.enableSdkAuthentication = true;
+    options.enableSdkAuthentication = true;
+
+    mock('callInWindow', function(method, apiKey, options) {
+      if (method === 'appboy.initialize') {
+          assertThat(options.enableSdkAuthentication).isTrue();
+      }
+    });
+
+    runCode(mockData);
+
+
+    // Verify that the tag finished successfully.
+    assertApi('callInWindow').wasCalledWith('appboy.initialize', mockData.apiKey, options);
+    assertApi('gtmOnSuccess').wasCalled();
 setup: |-
   const log = require('logToConsole');
   const encodeUriComponent = require('encodeUriComponent');
@@ -1057,7 +1176,7 @@ setup: |-
     baseUrl: 'testExample.com'
   };
 
-  const scriptUrl = 'https://js.appboycdn.com/web-sdk/' + encodeUriComponent(mockData.sdkVersion) + '/appboy.min.js';
+  const scriptUrl = 'https://js.appboycdn.com/web-sdk/' + encodeUriComponent(mockData.sdkVersion) + '/appboy.no-amd.min.js';
 
   const options = {};
   options.baseUrl = 'testExample.com';
