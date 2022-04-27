@@ -1,6 +1,8 @@
 homepage: "https://www.braze.com/"
 documentation: "https://github.com/braze-inc/braze-gtm-initialization"
 versions:
+  - sha: 0550a26217223b709dd0d711ad07108f3410324b
+    changeNotes: Web SDK 4.0 compatibility
   - sha: 90d50545c915b51cc02ae65e630287a4d88c2c49
     changeNotes: Adds support for SDK authentication and use no-amd version by default
   - sha: 56e1b69ca510305daf078f9b057102ddd6a520ab
