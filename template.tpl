@@ -64,7 +64,7 @@ ___TEMPLATE_PARAMETERS___
     "name": "sdkVersion",
     "displayName": "SDK Version",
     "simpleValueType": true,
-    "defaultValue": 3.5
+    "defaultValue": 4.0
   },
   {
     "type": "TEXT",
@@ -213,47 +213,55 @@ const queryPermission = require('queryPermission');
 const encodeUriComponent = require('encodeUriComponent');
 const makeNumber = require('makeNumber');
 
+const versions = data.sdkVersion.split('.');
+const majorVersion = makeNumber(versions[0]);
+const minorVersion = makeNumber(versions[1]);
+
 // Install the corresponding version of SDK (from user input)
-const fileName = 'appboy.no-amd.min.js';
-const url = 'https://js.appboycdn.com/web-sdk/'+ encodeUriComponent(data.sdkVersion) +'/' + fileName;
+const fileName = majorVersion >= 4 ? 'braze.no-amd.min.js' : 'appboy.no-amd.min.js';
+const url = 'https://js.appboycdn.com/web-sdk/'+ encodeUriComponent(data.sdkVersion) + '/' + fileName;
 const message = 'Braze: ';
 
 const log = data.debug ? logToConsole : (() => {});
+
+const sdkObject = majorVersion >= 4 ? 'braze' : 'appboy';
 
 const onSuccess = () => {
   log(message, 'Loaded Braze Web SDK from ' + url);
   const options = makeOptions();
 
   if (data.disableTracking) {
-    callInWindow('appboy.stopWebTracking');
+    const disableSdkName = majorVersion >= 4 ? 'disableSdk' : 'stopWebTracking';
+    callInWindow(sdkObject + '.' + disableSdkName);
   } else {
-    // Initialize the appboy with api key and base url(from user input)
-    callInWindow('appboy.initialize', data.apiKey, options);
+    // Initialize the SDK with api key and base url (from user input)
+    callInWindow(sdkObject + '.initialize', data.apiKey, options);
 
     // check if we're on a version that supports addSdkMetadata
     let supportsSdkMetadata = false;
-    const versions = data.sdkVersion.split('.');
     if (versions.length > 1) {
-      const majorVersion = makeNumber(versions[0]);
-      const minorVersion = makeNumber(versions[1]);
       if (majorVersion > 3 || (majorVersion === 3 && minorVersion >= 5)) {
         supportsSdkMetadata = true;
       }
     }
     if (supportsSdkMetadata) {
-      callInWindow('appboy.addSdkMetadata', ['gg', 'wcd']);
+      callInWindow(sdkObject + '.addSdkMetadata', ['gg', 'wcd']);
     }
 
     // If a user ID is provided, call change user before start session
     if (data.userID) {
-      callInWindow('appboy.changeUser', data.userID);
+      callInWindow(sdkObject + '.changeUser', data.userID);
     }
 
     if (data.automaticallyShowNewInAppMessages) {
-      callInWindow('appboy.display.automaticallyShowNewInAppMessages');
+      if (majorVersion >= 4) {
+        callInWindow(sdkObject + '.automaticallyShowInAppMessages');
+      } else {
+        callInWindow(sdkObject + '.display.automaticallyShowNewInAppMessages');
+      }
     }
 
-    callInWindow('appboy.openSession');
+    callInWindow(sdkObject + '.openSession');
   }
   data.gtmOnSuccess();
 };
@@ -294,7 +302,8 @@ const makeOptions = () => {
   }
 
   if (data.minimumIntervalBetweenTriggerActionsInSeconds) {
-    options.minimumIntervalBetweenTriggerActionsInSeconds = data.minimumIntervalBetweenTriggerActionsInSeconds;
+    const interval = makeNumber(data.minimumIntervalBetweenTriggerActionsInSeconds);
+    options.minimumIntervalBetweenTriggerActionsInSeconds = interval;
   }
 
   if (data.noCookies) {
@@ -306,7 +315,8 @@ const makeOptions = () => {
   }
 
   if (data.sessionTimeoutInSeconds) {
-    options.sessionTimeoutInSeconds = data.sessionTimeoutInSeconds;
+    const timeout = makeNumber(data.sessionTimeoutInSeconds);
+    options.sessionTimeoutInSeconds = timeout;
   }
 
   if (data.enableSdkAuthentication) {
@@ -631,6 +641,279 @@ ___WEB_PERMISSIONS___
                     "boolean": true
                   }
                 ]
+              },
+              {
+                "type": 3,
+                "mapKey": [
+                  {
+                    "type": 1,
+                    "string": "key"
+                  },
+                  {
+                    "type": 1,
+                    "string": "read"
+                  },
+                  {
+                    "type": 1,
+                    "string": "write"
+                  },
+                  {
+                    "type": 1,
+                    "string": "execute"
+                  }
+                ],
+                "mapValue": [
+                  {
+                    "type": 1,
+                    "string": "braze"
+                  },
+                  {
+                    "type": 8,
+                    "boolean": false
+                  },
+                  {
+                    "type": 8,
+                    "boolean": false
+                  },
+                  {
+                    "type": 8,
+                    "boolean": true
+                  }
+                ]
+              },
+              {
+                "type": 3,
+                "mapKey": [
+                  {
+                    "type": 1,
+                    "string": "key"
+                  },
+                  {
+                    "type": 1,
+                    "string": "read"
+                  },
+                  {
+                    "type": 1,
+                    "string": "write"
+                  },
+                  {
+                    "type": 1,
+                    "string": "execute"
+                  }
+                ],
+                "mapValue": [
+                  {
+                    "type": 1,
+                    "string": "braze.initialize"
+                  },
+                  {
+                    "type": 8,
+                    "boolean": false
+                  },
+                  {
+                    "type": 8,
+                    "boolean": false
+                  },
+                  {
+                    "type": 8,
+                    "boolean": true
+                  }
+                ]
+              },
+              {
+                "type": 3,
+                "mapKey": [
+                  {
+                    "type": 1,
+                    "string": "key"
+                  },
+                  {
+                    "type": 1,
+                    "string": "read"
+                  },
+                  {
+                    "type": 1,
+                    "string": "write"
+                  },
+                  {
+                    "type": 1,
+                    "string": "execute"
+                  }
+                ],
+                "mapValue": [
+                  {
+                    "type": 1,
+                    "string": "braze.openSession"
+                  },
+                  {
+                    "type": 8,
+                    "boolean": false
+                  },
+                  {
+                    "type": 8,
+                    "boolean": false
+                  },
+                  {
+                    "type": 8,
+                    "boolean": true
+                  }
+                ]
+              },
+              {
+                "type": 3,
+                "mapKey": [
+                  {
+                    "type": 1,
+                    "string": "key"
+                  },
+                  {
+                    "type": 1,
+                    "string": "read"
+                  },
+                  {
+                    "type": 1,
+                    "string": "write"
+                  },
+                  {
+                    "type": 1,
+                    "string": "execute"
+                  }
+                ],
+                "mapValue": [
+                  {
+                    "type": 1,
+                    "string": "braze.changeUser"
+                  },
+                  {
+                    "type": 8,
+                    "boolean": false
+                  },
+                  {
+                    "type": 8,
+                    "boolean": false
+                  },
+                  {
+                    "type": 8,
+                    "boolean": true
+                  }
+                ]
+              },
+              {
+                "type": 3,
+                "mapKey": [
+                  {
+                    "type": 1,
+                    "string": "key"
+                  },
+                  {
+                    "type": 1,
+                    "string": "read"
+                  },
+                  {
+                    "type": 1,
+                    "string": "write"
+                  },
+                  {
+                    "type": 1,
+                    "string": "execute"
+                  }
+                ],
+                "mapValue": [
+                  {
+                    "type": 1,
+                    "string": "braze.automaticallyShowInAppMessages"
+                  },
+                  {
+                    "type": 8,
+                    "boolean": false
+                  },
+                  {
+                    "type": 8,
+                    "boolean": false
+                  },
+                  {
+                    "type": 8,
+                    "boolean": true
+                  }
+                ]
+              },
+              {
+                "type": 3,
+                "mapKey": [
+                  {
+                    "type": 1,
+                    "string": "key"
+                  },
+                  {
+                    "type": 1,
+                    "string": "read"
+                  },
+                  {
+                    "type": 1,
+                    "string": "write"
+                  },
+                  {
+                    "type": 1,
+                    "string": "execute"
+                  }
+                ],
+                "mapValue": [
+                  {
+                    "type": 1,
+                    "string": "braze.disableSdk"
+                  },
+                  {
+                    "type": 8,
+                    "boolean": false
+                  },
+                  {
+                    "type": 8,
+                    "boolean": false
+                  },
+                  {
+                    "type": 8,
+                    "boolean": true
+                  }
+                ]
+              },
+              {
+                "type": 3,
+                "mapKey": [
+                  {
+                    "type": 1,
+                    "string": "key"
+                  },
+                  {
+                    "type": 1,
+                    "string": "read"
+                  },
+                  {
+                    "type": 1,
+                    "string": "write"
+                  },
+                  {
+                    "type": 1,
+                    "string": "execute"
+                  }
+                ],
+                "mapValue": [
+                  {
+                    "type": 1,
+                    "string": "braze.addSdkMetadata"
+                  },
+                  {
+                    "type": 8,
+                    "boolean": false
+                  },
+                  {
+                    "type": 8,
+                    "boolean": false
+                  },
+                  {
+                    "type": 8,
+                    "boolean": true
+                  }
+                ]
               }
             ]
           }
@@ -656,11 +939,11 @@ ___WEB_PERMISSIONS___
             "listItem": [
               {
                 "type": 1,
-                "string": "https://js.appboycdn.com/web-sdk/*/appboy.min.js"
+                "string": "https://js.appboycdn.com/web-sdk/*/appboy.no-amd.min.js"
               },
               {
                 "type": 1,
-                "string": "https://js.appboycdn.com/web-sdk/*/appboy.no-amd.min.js"
+                "string": "https://js.appboycdn.com/web-sdk/*/braze.no-amd.min.js"
               }
             ]
           }
@@ -685,26 +968,56 @@ scenarios:
     // Test whether the injectScript functions work properly
     assertApi('injectScript').wasCalledWith(scriptUrl, success, failure, scriptUrl);
     assertApi('gtmOnSuccess').wasCalled();
-- name: Call changeUser when userID is provided
-  code: |+
+- name: Call changeUser when userId is provided
+  code: |-
     // Test when the userID is provided;
     mockData.userID = 'testUser';
+
+    runCode(mockData);
+
+    // Verify that the tag finished successfully.
+    assertApi('callInWindow').wasCalledWith('braze.changeUser', 'testUser');
+    assertApi('gtmOnSuccess').wasCalled();
+
+    // pre-4.0
+    mockData.sdkVersion = '3.5';
+
+    // Test when the userID is provided;
+    mockData.userID = 'testUser';
+
     runCode(mockData);
 
     // Verify that the tag finished successfully.
     assertApi('callInWindow').wasCalledWith('appboy.changeUser', 'testUser');
     assertApi('gtmOnSuccess').wasCalled();
-
-
 - name: Do not call changeUser when the userID is not provided
   code: |-
     runCode(mockData);
 
     // Verify that the tag finished successfully.
+    assertApi('callInWindow').wasNotCalledWith('braze.changeUser');
+    assertApi('gtmOnSuccess').wasCalled();
+
+    // pre-4.0
+    mockData.sdkVersion = '3.5';
+    runCode(mockData);
+
+    // Verify that the tag finished successfully.
     assertApi('callInWindow').wasNotCalledWith('appboy.changeUser');
     assertApi('gtmOnSuccess').wasCalled();
-- name: Called automaticallyShowNewInAppMessages if provided
-  code: |+
+- name: Call automaticallyShowInAppMessages if provided
+  code: |-
+    // When the box is checked, call the function
+    mockData.automaticallyShowNewInAppMessages = true;
+    runCode(mockData);
+
+    // Verify that the tag finished successfully.
+    assertApi('callInWindow').wasCalledWith('braze.automaticallyShowInAppMessages');
+    assertApi('gtmOnSuccess').wasCalled();
+
+    // pre-4.0
+    mockData.sdkVersion = '3.5';
+
     // When the box is checked, call the function
     mockData.automaticallyShowNewInAppMessages = true;
     runCode(mockData);
@@ -712,19 +1025,34 @@ scenarios:
     // Verify that the tag finished successfully.
     assertApi('callInWindow').wasCalledWith('appboy.display.automaticallyShowNewInAppMessages');
     assertApi('gtmOnSuccess').wasCalled();
+- name: Do not call automaticallyShowInAppMessages if provided
+  code: |-
+    runCode(mockData);
 
-- name: Do not call automaticallyShowNewInAppMessages if not provided
-  code: |
+    // Verify that the tag finished successfully.
+    assertApi('callInWindow').wasNotCalledWith('braze.automaticallyShowInAppMessages');
+    assertApi('gtmOnSuccess').wasCalled();
+
+    // pre-4.0
+    mockData.sdkVersion = '3.5';
     runCode(mockData);
 
     // Verify that the tag finished successfully.
     assertApi('callInWindow').wasNotCalledWith('appboy.display.automaticallyShowNewInAppMessages');
     assertApi('gtmOnSuccess').wasCalled();
-- name: Test whether the initialization is successful
+- name: Initializes successfully
   code: |-
-    // Call runCode to run the template's code.
     runCode(mockData);
 
+
+    // Verify that the tag finished successfully.
+    assertApi('callInWindow').wasCalledWith('braze.initialize', mockData.apiKey, options);
+    assertApi('callInWindow').wasCalledWith('braze.openSession');
+    assertApi('gtmOnSuccess').wasCalled();
+
+    // pre-4.0
+    mockData.sdkVersion = '3.5';
+    runCode(mockData);
 
     // Verify that the tag finished successfully.
     assertApi('callInWindow').wasCalledWith('appboy.initialize', mockData.apiKey, options);
@@ -750,34 +1078,47 @@ scenarios:
 
 - name: Load the script with corresponding sdk version as user provided
   code: |-
-    mockData.sdkVersion = '2.7';
-    const url = 'https://js.appboycdn.com/web-sdk/2.7/appboy.no-amd.min.js';
+    mockData.sdkVersion = '3.5';
+    const url = 'https://js.appboycdn.com/web-sdk/3.5/appboy.no-amd.min.js';
     runCode(mockData);
 
-    // Verify that the tag finished successfully.
     assertApi('injectScript').wasCalledWith(url, success, failure, url);
     assertApi('gtmOnSuccess').wasCalled();
-- name: Set safariWebsitePushId if user provided
+
+    mockData.sdkVersion = '2.7';
+    const url2 = 'https://js.appboycdn.com/web-sdk/2.7/appboy.no-amd.min.js';
+    runCode(mockData);
+
+    assertApi('injectScript').wasCalledWith(url2, success, failure, url2);
+    assertApi('gtmOnSuccess').wasCalled();
+- name: Set safariWebsitePushId if user provided it
   code: |-
     options.safariWebsitePushId = 'safariWebsitePushId';
     mockData.safariWebsitePushId = 'safariWebsitePushId';
 
     mock('callInWindow', function(method, apiKey, options) {
-      if (method === 'appboy.initialize') {
+      if (method === 'braze.initialize' || method === 'appboy.initialize') {
           assertThat(options.safariWebsitePushId, 'Safari Website Push Id mismatch').isEqualTo('safariWebsitePushId');
       }
     });
 
     runCode(mockData);
 
+    // Verify that the tag finished successfully.
+    assertApi('callInWindow').wasCalledWith('braze.initialize', mockData.apiKey, options);
+    assertApi('gtmOnSuccess').wasCalled();
+
+    // pre-4.0
+    mockData.sdkVersion = '3.5';
+    runCode(mockData);
 
     // Verify that the tag finished successfully.
     assertApi('callInWindow').wasCalledWith('appboy.initialize', mockData.apiKey, options);
     assertApi('gtmOnSuccess').wasCalled();
-- name: Do not set safariWebsitePushId if user didn't provide
+- name: Do not set safariWebsitePushId if user didn't provide it
   code: |-
     mock('callInWindow', function(method, apiKey, options) {
-      if (method === 'appboy.initialize') {
+      if (method === 'braze.initialize' || method === 'appboy.initialize') {
           assertThat(options.safariWebsitePushId).isUndefined();
       }
     });
@@ -786,17 +1127,36 @@ scenarios:
 
 
     // Verify that the tag finished successfully.
+    assertApi('callInWindow').wasCalledWith('braze.initialize', mockData.apiKey, options);
+    assertApi('gtmOnSuccess').wasCalled();
+
+    // pre-4.0
+    mockData.sdkVersion = '3.5';
+
+    runCode(mockData);
+
+    // Verify that the tag finished successfully.
     assertApi('callInWindow').wasCalledWith('appboy.initialize', mockData.apiKey, options);
     assertApi('gtmOnSuccess').wasCalled();
-- name: Set allowUserSuppliedJavascript true if box checked
+- name: Set allowUserSuppliedJavascript true if user checked the box
   code: |-
     mockData.allowUserSuppliedJavascript = true;
     options.allowUserSuppliedJavascript = true;
+
     mock('callInWindow', function(method, apiKey, options) {
-      if (method === 'appboy.initialize') {
+      if (method === 'braze.initialize' || method === 'appboy.initialize') {
           assertThat(options.allowUserSuppliedJavascript).isTrue();
       }
     });
+
+    runCode(mockData);
+
+    // Verify that the tag finished successfully.
+    assertApi('callInWindow').wasCalledWith('braze.initialize', mockData.apiKey, options);
+    assertApi('gtmOnSuccess').wasCalled();
+
+    // pre-4.0
+    mockData.sdkVersion = '3.5';
 
     runCode(mockData);
 
@@ -808,27 +1168,45 @@ scenarios:
     mockData.allowUserSuppliedJavascript = false;
 
     mock('callInWindow', function(method, apiKey, options) {
-      if (method === 'appboy.initialize') {
+      if (method === 'braze.initialize' || method === 'appboy.initialize') {
           assertThat(options.allowUserSuppliedJavascript).isUndefined();
       }
     });
 
     runCode(mockData);
 
+    // Verify that the tag finished successfully.
+    assertApi('callInWindow').wasCalledWith('braze.initialize', mockData.apiKey, options);
+    assertApi('gtmOnSuccess').wasCalled();
+
+    // pre-4.0
+    mockData.sdkVersion = '3.5';
+
+    runCode(mockData);
 
     // Verify that the tag finished successfully.
     assertApi('callInWindow').wasCalledWith('appboy.initialize', mockData.apiKey, options);
     assertApi('gtmOnSuccess').wasCalled();
-- name: Call disablePushTokenMaintenance if user checked the box
-  code: |-
+- name: Set disablePushTokenMaintenance if user checked the box
+  code: |
     mockData.disablePushTokenMaintenance = true;
     options.disablePushTokenMaintenance = true;
 
     mock('callInWindow', function(method, apiKey, options) {
-      if (method === 'appboy.initialize') {
+      if (method === 'braze.initialize' || method === 'appboy.initialize') {
           assertThat(options.disablePushTokenMaintenance).isTrue();
       }
     });
+
+    runCode(mockData);
+
+    // Verify that the tag finished successfully.
+    assertApi('callInWindow').wasCalledWith('braze.initialize', mockData.apiKey, options);
+    assertApi('gtmOnSuccess').wasCalled();
+
+    // pre-4.0
+    mockData.sdkVersion = '3.5';
+
     runCode(mockData);
 
     // Verify that the tag finished successfully.
@@ -839,13 +1217,21 @@ scenarios:
     mockData.disablePushTokenMaintenance = false;
 
     mock('callInWindow', function(method, apiKey, options) {
-      if (method === 'appboy.initialize') {
+      if (method === 'braze.initialize'|| method === 'appboy.initialize') {
           assertThat(options.disablePushTokenMaintenance).isUndefined();
       }
     });
 
     runCode(mockData);
 
+    // Verify that the tag finished successfully.
+    assertApi('callInWindow').wasCalledWith('braze.initialize', mockData.apiKey, options);
+    assertApi('gtmOnSuccess').wasCalled();
+
+    // pre-4.0
+    mockData.sdkVersion = '3.5';
+
+    runCode(mockData);
 
     // Verify that the tag finished successfully.
     assertApi('callInWindow').wasCalledWith('appboy.initialize', mockData.apiKey, options);
@@ -854,11 +1240,22 @@ scenarios:
   code: |-
     mockData.doNotLoadFontAwesome = true;
     options.doNotLoadFontAwesome = true;
+
     mock('callInWindow', function(method, apiKey, options) {
-      if (method === 'appboy.initialize') {
+      if (method === 'braze.initialize' || method === 'appboy.initialize') {
           assertThat(options.doNotLoadFontAwesome).isTrue();
       }
     });
+
+    runCode(mockData);
+
+    // Verify that the tag finished successfully.
+    assertApi('callInWindow').wasCalledWith('braze.initialize', mockData.apiKey, options);
+    assertApi('gtmOnSuccess').wasCalled();
+
+    // pre-4.0
+    mockData.sdkVersion = '3.5';
+
     runCode(mockData);
 
     // Verify that the tag finished successfully.
@@ -869,13 +1266,21 @@ scenarios:
     mockData.doNotLoadFontAwesome = false;
 
     mock('callInWindow', function(method, apiKey, options) {
-      if (method === 'appboy.initialize') {
+      if (method === 'braze.initialize' || method === 'appboy.initialize') {
           assertThat(options.doNotLoadFontAwesome).isUndefined();
       }
     });
 
     runCode(mockData);
 
+    // Verify that the tag finished successfully.
+    assertApi('callInWindow').wasCalledWith('braze.initialize', mockData.apiKey, options);
+    assertApi('gtmOnSuccess').wasCalled();
+
+    // pre-4.0
+    mockData.sdkVersion = '3.5';
+
+    runCode(mockData);
 
     // Verify that the tag finished successfully.
     assertApi('callInWindow').wasCalledWith('appboy.initialize', mockData.apiKey, options);
@@ -886,10 +1291,19 @@ scenarios:
     options.enableLogging = true;
 
     mock('callInWindow', function(method, apiKey, options) {
-      if (method === 'appboy.initialize') {
+      if (method === 'braze.initialize' || method === 'appboy.initialize') {
           assertThat(options.enableLogging).isTrue();
       }
     });
+
+    runCode(mockData);
+
+    // Verify that the tag finished successfully.
+    assertApi('callInWindow').wasCalledWith('braze.initialize', mockData.apiKey, options);
+    assertApi('gtmOnSuccess').wasCalled();
+
+    // pre-4.0
+    mockData.sdkVersion = '3.5';
 
     runCode(mockData);
 
@@ -901,13 +1315,22 @@ scenarios:
     mockData.enableLogging = false;
 
     mock('callInWindow', function(method, apiKey, options) {
-      if (method === 'appboy.initialize') {
+      if (method === 'braze.initialize' || method === 'appboy.initialize') {
           assertThat(options.enableLogging).isUndefined();
       }
     });
 
     runCode(mockData);
 
+
+    // Verify that the tag finished successfully.
+    assertApi('callInWindow').wasCalledWith('braze.initialize', mockData.apiKey, options);
+    assertApi('gtmOnSuccess').wasCalled();
+
+    // pre-4.0
+    mockData.sdkVersion = '3.5';
+
+    runCode(mockData);
 
     // Verify that the tag finished successfully.
     assertApi('callInWindow').wasCalledWith('appboy.initialize', mockData.apiKey, options);
@@ -918,10 +1341,19 @@ scenarios:
     options.manageServiceWorkerExternally = true;
 
     mock('callInWindow', function(method, apiKey, options) {
-      if (method === 'appboy.initialize') {
+      if (method === 'braze.initialize' || method === 'appboy.initialize') {
           assertThat(options.manageServiceWorkerExternally).isTrue();
       }
     });
+
+    runCode(mockData);
+
+    // Verify that the tag finished successfully.
+    assertApi('callInWindow').wasCalledWith('braze.initialize', mockData.apiKey, options);
+    assertApi('gtmOnSuccess').wasCalled();
+
+    // pre-4.0
+    mockData.sdkVersion = '3.5';
 
     runCode(mockData);
 
@@ -933,13 +1365,21 @@ scenarios:
     mockData.manageServiceWorkerExternally = false;
 
     mock('callInWindow', function(method, apiKey, options) {
-      if (method === 'appboy.initialize') {
+      if (method === 'braze.initialize' || method === 'appboy.initialize') {
           assertThat(options.manageServiceWorkerExternally).isUndefined();
       }
     });
 
     runCode(mockData);
 
+    // Verify that the tag finished successfully.
+    assertApi('callInWindow').wasCalledWith('braze.initialize', mockData.apiKey, options);
+    assertApi('gtmOnSuccess').wasCalled();
+
+    // pre-4.0
+    mockData.sdkVersion = '3.5';
+
+    runCode(mockData);
 
     // Verify that the tag finished successfully.
     assertApi('callInWindow').wasCalledWith('appboy.initialize', mockData.apiKey, options);
@@ -950,10 +1390,19 @@ scenarios:
     options.noCookies = true;
 
     mock('callInWindow', function(method, apiKey, options) {
-      if (method === 'appboy.initialize') {
+      if (method === 'braze.initialize' || method === 'appboy.initialize') {
           assertThat(options.noCookies).isTrue();
       }
     });
+
+    runCode(mockData);
+
+    // Verify that the tag finished successfully.
+    assertApi('callInWindow').wasCalledWith('braze.initialize', mockData.apiKey, options);
+    assertApi('gtmOnSuccess').wasCalled();
+
+    // pre-4.0
+    mockData.sdkVersion = '3.5';
 
     runCode(mockData);
 
@@ -965,7 +1414,7 @@ scenarios:
     mockData.noCookies = false;
 
     mock('callInWindow', function(method, apiKey, options) {
-      if (method === 'appboy.initialize') {
+      if (method === 'braze.initialize' || method === 'appboy.initialize') {
           assertThat(options.noCookies).isUndefined();
       }
     });
@@ -974,19 +1423,36 @@ scenarios:
 
 
     // Verify that the tag finished successfully.
+    assertApi('callInWindow').wasCalledWith('braze.initialize', mockData.apiKey, options);
+    assertApi('gtmOnSuccess').wasCalled();
+
+    // pre-4.0
+    mockData.sdkVersion = '3.5';
+
+    runCode(mockData);
+
+    // Verify that the tag finished successfully.
     assertApi('callInWindow').wasCalledWith('appboy.initialize', mockData.apiKey, options);
     assertApi('gtmOnSuccess').wasCalled();
 - name: Set minimumIntervalBetweenTriggerActionsInSeconds if user provided
   code: |-
-    // Call runCode to run the template's code.
     mockData.minimumIntervalBetweenTriggerActionsInSeconds = 15;
     options.minimumIntervalBetweenTriggerActionsInSeconds = 15;
 
     mock('callInWindow', function(method, apiKey, options) {
-      if (method === 'appboy.initialize') {
+      if (method === 'braze.initialize' || method === 'appboy.initialize') {
           assertThat(options.minimumIntervalBetweenTriggerActionsInSeconds).isEqualTo(15);
       }
     });
+
+    runCode(mockData);
+
+    // Verify that the tag finished successfully.
+    assertApi('callInWindow').wasCalledWith('braze.initialize', mockData.apiKey, options);
+    assertApi('gtmOnSuccess').wasCalled();
+
+    // pre-4.0
+    mockData.sdkVersion = '3.5';
 
     runCode(mockData);
 
@@ -996,45 +1462,68 @@ scenarios:
 - name: Do not set minimumIntervalBetweenTriggerActionsInSeconds if user didn't provide
   code: |-
     mock('callInWindow', function(method, apiKey, options) {
-      if (method === 'appboy.initialize') {
+      if (method === 'braze.initialize' || method === 'appboy.initialize') {
           assertThat(options.minimumIntervalBetweenTriggerActionsInSeconds).isUndefined();
       }
     });
 
     runCode(mockData);
 
-
     // Verify that the tag finished successfully.
-    assertApi('callInWindow').wasCalledWith('appboy.initialize', mockData.apiKey, options);
+    assertApi('callInWindow').wasCalledWith('braze.initialize', mockData.apiKey, options);
     assertApi('gtmOnSuccess').wasCalled();
-- name: Set serviceWorkerLocation if user provided
-  code: |+
-    mockData.serviceWorkerLocation = 'serviceWorkerLocation';
-    options.serviceWorkerLocation = 'serviceWorkerLocation';
 
-    mock('callInWindow', function(method, apiKey, options) {
-      if (method === 'appboy.initialize') {
-          assertThat(options.serviceWorkerLocation).isEqualTo('serviceWorkerLocation');
-      }
-    });
-
+    // pre-4.0
+    mockData.sdkVersion = '3.5';
 
     runCode(mockData);
 
     // Verify that the tag finished successfully.
     assertApi('callInWindow').wasCalledWith('appboy.initialize', mockData.apiKey, options);
     assertApi('gtmOnSuccess').wasCalled();
+- name: Set serviceWorkerLocation if user provided
+  code: |
+    mockData.serviceWorkerLocation = 'serviceWorkerLocation';
+    options.serviceWorkerLocation = 'serviceWorkerLocation';
 
+    mock('callInWindow', function(method, apiKey, options) {
+      if (method === 'braze.initialize' || method === 'appboy.initialize') {
+          assertThat(options.serviceWorkerLocation).isEqualTo('serviceWorkerLocation');
+      }
+    });
+
+    runCode(mockData);
+
+    // Verify that the tag finished successfully.
+    assertApi('callInWindow').wasCalledWith('braze.initialize', mockData.apiKey, options);
+    assertApi('gtmOnSuccess').wasCalled();
+
+    // pre-4.0
+    mockData.sdkVersion = '3.5';
+
+    runCode(mockData);
+
+    // Verify that the tag finished successfully.
+    assertApi('callInWindow').wasCalledWith('appboy.initialize', mockData.apiKey, options);
+    assertApi('gtmOnSuccess').wasCalled();
 - name: Do not set serviceWorkerLocation if user didn't provide
   code: |-
     mock('callInWindow', function(method, apiKey, options) {
-      if (method === 'appboy.initialize') {
+      if (method === 'braze.initialize' || method === 'appboy.initialize') {
           assertThat(options.serviceWorkerLocation).isUndefined();
       }
     });
 
     runCode(mockData);
 
+    // Verify that the tag finished successfully.
+    assertApi('callInWindow').wasCalledWith('braze.initialize', mockData.apiKey, options);
+    assertApi('gtmOnSuccess').wasCalled();
+
+    // pre-4.0
+    mockData.sdkVersion = '3.5';
+
+    runCode(mockData);
 
     // Verify that the tag finished successfully.
     assertApi('callInWindow').wasCalledWith('appboy.initialize', mockData.apiKey, options);
@@ -1046,10 +1535,19 @@ scenarios:
     options.sessionTimeoutInSeconds = 15;
 
     mock('callInWindow', function(method, apiKey, options) {
-      if (method === 'appboy.initialize') {
+      if (method === 'braze.initialize' || method === 'appboy.initialize') {
           assertThat(options.sessionTimeoutInSeconds).isEqualTo(15);
       }
     });
+
+    runCode(mockData);
+
+    // Verify that the tag finished successfully.
+    assertApi('callInWindow').wasCalledWith('braze.initialize', mockData.apiKey, options);
+    assertApi('gtmOnSuccess').wasCalled();
+
+    // pre-4.0
+    mockData.sdkVersion = '3.5';
 
     runCode(mockData);
 
@@ -1059,24 +1557,42 @@ scenarios:
 - name: Do not set sessionTimeoutInSeconds if user didn't provide
   code: |-
     mock('callInWindow', function(method, apiKey, options) {
-      if (method === 'appboy.initialize') {
+      if (method === 'braze.initialize' || method === 'appboy.initialize') {
           assertThat(options.sessionTimeoutInSeconds).isUndefined();
       }
     });
 
     runCode(mockData);
 
+    // Verify that the tag finished successfully.
+    assertApi('callInWindow').wasCalledWith('braze.initialize', mockData.apiKey, options);
+    assertApi('gtmOnSuccess').wasCalled();
+
+    // pre-4.0
+    mockData.sdkVersion = '3.5';
+
+    runCode(mockData);
 
     // Verify that the tag finished successfully.
     assertApi('callInWindow').wasCalledWith('appboy.initialize', mockData.apiKey, options);
     assertApi('gtmOnSuccess').wasCalled();
-- name: Call stopWebTracking if user provided disableTracking
+- name: Call disabledSdk/stopWebTracking if user provided disableTracking
   code: |
     mockData.disableTracking = true;
 
     runCode(mockData);
 
     // Verify that the tag finished successfully.
+    assertApi('callInWindow').wasCalledWith('braze.disableSdk');
+    assertApi('callInWindow').wasNotCalledWith('braze.initialize', mockData.apiKey, options);
+    assertApi('callInWindow').wasNotCalledWith('braze.openSession');
+    assertApi('gtmOnSuccess').wasCalled();
+
+    // pre-4.0
+    mockData.sdkVersion = '3.5';
+
+    runCode(mockData);
+
     assertApi('callInWindow').wasCalledWith('appboy.stopWebTracking');
     assertApi('callInWindow').wasNotCalledWith('appboy.initialize', mockData.apiKey, options);
     assertApi('callInWindow').wasNotCalledWith('appboy.openSession');
@@ -1087,7 +1603,16 @@ scenarios:
 
     runCode(mockData);
 
-    // Verify that the tag finished successfully.
+    assertApi('callInWindow').wasNotCalledWith('braze.disableSdk');
+    assertApi('callInWindow').wasCalledWith('braze.initialize', mockData.apiKey, options);
+    assertApi('callInWindow').wasCalledWith('braze.openSession');
+    assertApi('gtmOnSuccess').wasCalled();
+
+    // pre-4.0
+    mockData.sdkVersion = '3.5';
+
+    runCode(mockData);
+
     assertApi('callInWindow').wasNotCalledWith('appboy.stopWebTracking');
     assertApi('callInWindow').wasCalledWith('appboy.initialize', mockData.apiKey, options);
     assertApi('callInWindow').wasCalledWith('appboy.openSession');
@@ -1137,13 +1662,22 @@ scenarios:
 - name: Do not set enableSdkAuthentication if user didn't check the box
   code: |-
     mock('callInWindow', function(method, apiKey, options) {
-      if (method === 'appboy.initialize') {
+      if (method === 'braze.initialize' || method === 'appboy.initialize') {
           assertThat(options.enableSdkAuthentication).isUndefined();
       }
     });
 
     runCode(mockData);
 
+
+    // Verify that the tag finished successfully.
+    assertApi('callInWindow').wasCalledWith('braze.initialize', mockData.apiKey, options);
+    assertApi('gtmOnSuccess').wasCalled();
+
+    // pre-4.0
+    mockData.sdkVersion = '3.5';
+
+    runCode(mockData);
 
     // Verify that the tag finished successfully.
     assertApi('callInWindow').wasCalledWith('appboy.initialize', mockData.apiKey, options);
@@ -1154,13 +1688,22 @@ scenarios:
     options.enableSdkAuthentication = true;
 
     mock('callInWindow', function(method, apiKey, options) {
-      if (method === 'appboy.initialize') {
+      if (method === 'braze.initialize' || method === 'appboy.initialize') {
           assertThat(options.enableSdkAuthentication).isTrue();
       }
     });
 
     runCode(mockData);
 
+
+    // Verify that the tag finished successfully.
+    assertApi('callInWindow').wasCalledWith('braze.initialize', mockData.apiKey, options);
+    assertApi('gtmOnSuccess').wasCalled();
+
+    // pre-4.0
+    mockData.sdkVersion = '3.5';
+
+    runCode(mockData);
 
     // Verify that the tag finished successfully.
     assertApi('callInWindow').wasCalledWith('appboy.initialize', mockData.apiKey, options);
@@ -1172,11 +1715,11 @@ setup: |-
   const mockData = {
     // Mocked field values
     apiKey:'my api key',
-    sdkVersion:'3.2',
+    sdkVersion:'4.0',
     baseUrl: 'testExample.com'
   };
 
-  const scriptUrl = 'https://js.appboycdn.com/web-sdk/' + encodeUriComponent(mockData.sdkVersion) + '/appboy.no-amd.min.js';
+  const scriptUrl = 'https://js.appboycdn.com/web-sdk/' + encodeUriComponent(mockData.sdkVersion) + '/braze.no-amd.min.js';
 
   const options = {};
   options.baseUrl = 'testExample.com';
