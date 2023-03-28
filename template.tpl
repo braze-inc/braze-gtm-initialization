@@ -64,7 +64,7 @@ ___TEMPLATE_PARAMETERS___
     "name": "sdkVersion",
     "displayName": "SDK Version",
     "simpleValueType": true,
-    "defaultValue": 4.0
+    "defaultValue": 4.6
   },
   {
     "type": "TEXT",
