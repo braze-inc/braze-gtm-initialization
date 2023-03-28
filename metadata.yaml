@@ -1,6 +1,8 @@
 homepage: "https://www.braze.com/"
 documentation: "https://github.com/braze-inc/braze-gtm-initialization"
 versions:
+  - sha: 73c05d1985ef295ad31fee1854e1890409fcbf74
+    changeNotes: Update default version to 4.6
   - sha: 0550a26217223b709dd0d711ad07108f3410324b
     changeNotes: Web SDK 4.0 compatibility
   - sha: 90d50545c915b51cc02ae65e630287a4d88c2c49
