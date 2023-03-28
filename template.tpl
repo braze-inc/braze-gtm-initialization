@@ -64,7 +64,7 @@ ___TEMPLATE_PARAMETERS___
     "name": "sdkVersion",
     "displayName": "SDK Version",
     "simpleValueType": true,
-    "defaultValue": 4.0
+    "defaultValue": 4.6
   },
   {
     "type": "TEXT",
@@ -1715,7 +1715,7 @@ setup: |-
   const mockData = {
     // Mocked field values
     apiKey:'my api key',
-    sdkVersion:'4.0',
+    sdkVersion:'4.6',
     baseUrl: 'testExample.com'
   };
 
