@@ -64,7 +64,7 @@ ___TEMPLATE_PARAMETERS___
     "name": "sdkVersion",
     "displayName": "SDK Version",
     "simpleValueType": true,
-    "defaultValue": 4.6
+    "defaultValue": 4.8
   },
   {
     "type": "TEXT",
@@ -231,7 +231,7 @@ const onSuccess = () => {
   const options = makeOptions();
 
   if (data.disableTracking) {
-    const disableSdkName = majorVersion >= 4 ? 'disableSdk' : 'stopWebTracking';
+    const disableSdkName = majorVersion >= 4 ? 'disableSDK' : 'stopWebTracking';
     callInWindow(sdkObject + '.' + disableSdkName);
   } else {
     // Initialize the SDK with api key and base url (from user input)
@@ -860,7 +860,7 @@ ___WEB_PERMISSIONS___
                 "mapValue": [
                   {
                     "type": 1,
-                    "string": "braze.disableSdk"
+                    "string": "braze.disableSDK"
                   },
                   {
                     "type": 8,
@@ -1583,7 +1583,7 @@ scenarios:
     runCode(mockData);
 
     // Verify that the tag finished successfully.
-    assertApi('callInWindow').wasCalledWith('braze.disableSdk');
+    assertApi('callInWindow').wasCalledWith('braze.disableSDK');
     assertApi('callInWindow').wasNotCalledWith('braze.initialize', mockData.apiKey, options);
     assertApi('callInWindow').wasNotCalledWith('braze.openSession');
     assertApi('gtmOnSuccess').wasCalled();
@@ -1603,7 +1603,7 @@ scenarios:
 
     runCode(mockData);
 
-    assertApi('callInWindow').wasNotCalledWith('braze.disableSdk');
+    assertApi('callInWindow').wasNotCalledWith('braze.disableSDK');
     assertApi('callInWindow').wasCalledWith('braze.initialize', mockData.apiKey, options);
     assertApi('callInWindow').wasCalledWith('braze.openSession');
     assertApi('gtmOnSuccess').wasCalled();
