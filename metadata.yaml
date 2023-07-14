@@ -1,6 +1,8 @@
 homepage: "https://www.braze.com/"
 documentation: "https://github.com/braze-inc/braze-gtm-initialization"
 versions:
+  - sha: 15df3f4ca1460b7bd070c16a8bf2fbead4bda016
+    changeNotes: Added a "Re-enable Tracking" option to the Initialization options
   - sha: 5a46790c5a2cbd3406ea37d2c97b3e36e77ee39b
     changeNotes: Fixed enable/disableSDK method name
   - sha: 73c05d1985ef295ad31fee1854e1890409fcbf74
