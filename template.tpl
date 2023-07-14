@@ -153,6 +153,14 @@ ___TEMPLATE_PARAMETERS___
       },
       {
         "type": "CHECKBOX",
+        "name": "enableTracking",
+        "checkboxText": "Re-enable Tracking",
+        "simpleValueType": true,
+        "help": "Re-enables Braze Web SDK tracking prior to initializing.",
+        "defaultValue": false
+      },
+      {
+        "type": "CHECKBOX",
         "name": "noCookies",
         "checkboxText": "Disable Cookies",
         "simpleValueType": true,
@@ -234,6 +242,11 @@ const onSuccess = () => {
     const disableSdkName = majorVersion >= 4 ? 'disableSDK' : 'stopWebTracking';
     callInWindow(sdkObject + '.' + disableSdkName);
   } else {
+    if (data.enableTracking) {
+      const enableSdkName = majorVersion >= 4 ? 'enableSDK' : 'resumeWebTracking';
+      callInWindow(sdkObject + '.' + enableSdkName);
+    }
+
     // Initialize the SDK with api key and base url (from user input)
     callInWindow(sdkObject + '.initialize', data.apiKey, options);
 
@@ -626,6 +639,45 @@ ___WEB_PERMISSIONS___
                 "mapValue": [
                   {
                     "type": 1,
+                    "string": "appboy.resumeWebTracking"
+                  },
+                  {
+                    "type": 8,
+                    "boolean": false
+                  },
+                  {
+                    "type": 8,
+                    "boolean": false
+                  },
+                  {
+                    "type": 8,
+                    "boolean": true
+                  }
+                ]
+              },
+              {
+                "type": 3,
+                "mapKey": [
+                  {
+                    "type": 1,
+                    "string": "key"
+                  },
+                  {
+                    "type": 1,
+                    "string": "read"
+                  },
+                  {
+                    "type": 1,
+                    "string": "write"
+                  },
+                  {
+                    "type": 1,
+                    "string": "execute"
+                  }
+                ],
+                "mapValue": [
+                  {
+                    "type": 1,
                     "string": "appboy.addSdkMetadata"
                   },
                   {
@@ -861,6 +913,45 @@ ___WEB_PERMISSIONS___
                   {
                     "type": 1,
                     "string": "braze.disableSDK"
+                  },
+                  {
+                    "type": 8,
+                    "boolean": false
+                  },
+                  {
+                    "type": 8,
+                    "boolean": false
+                  },
+                  {
+                    "type": 8,
+                    "boolean": true
+                  }
+                ]
+              },
+              {
+                "type": 3,
+                "mapKey": [
+                  {
+                    "type": 1,
+                    "string": "key"
+                  },
+                  {
+                    "type": 1,
+                    "string": "read"
+                  },
+                  {
+                    "type": 1,
+                    "string": "write"
+                  },
+                  {
+                    "type": 1,
+                    "string": "execute"
+                  }
+                ],
+                "mapValue": [
+                  {
+                    "type": 1,
+                    "string": "braze.enableSDK"
                   },
                   {
                     "type": 8,
@@ -1597,7 +1688,7 @@ scenarios:
     assertApi('callInWindow').wasNotCalledWith('appboy.initialize', mockData.apiKey, options);
     assertApi('callInWindow').wasNotCalledWith('appboy.openSession');
     assertApi('gtmOnSuccess').wasCalled();
-- name: Don't call stopWebTracking if user didn't provide disableTracking
+- name: Don't call disableSDK/stopWebTracking if user didn't provide disableTracking
   code: |
     mockData.disableTracking = false;
 
@@ -1614,6 +1705,47 @@ scenarios:
     runCode(mockData);
 
     assertApi('callInWindow').wasNotCalledWith('appboy.stopWebTracking');
+    assertApi('callInWindow').wasCalledWith('appboy.initialize', mockData.apiKey, options);
+    assertApi('callInWindow').wasCalledWith('appboy.openSession');
+    assertApi('gtmOnSuccess').wasCalled();
+- name: Call enableSdk/resumeWebTracking and initialize if user provided enableTracking
+  code: |
+    mockData.enableTracking = true;
+
+    runCode(mockData);
+
+    // Verify that the tag finished successfully.
+    assertApi('callInWindow').wasCalledWith('braze.enableSDK');
+    assertApi('callInWindow').wasCalledWith('braze.initialize', mockData.apiKey, options);
+    assertApi('callInWindow').wasCalledWith('braze.openSession');
+    assertApi('gtmOnSuccess').wasCalled();
+
+    // pre-4.0
+    mockData.sdkVersion = '3.5';
+
+    runCode(mockData);
+
+    assertApi('callInWindow').wasCalledWith('appboy.resumeWebTracking');
+    assertApi('callInWindow').wasCalledWith('appboy.initialize', mockData.apiKey, options);
+    assertApi('callInWindow').wasCalledWith('appboy.openSession');
+    assertApi('gtmOnSuccess').wasCalled();
+- name: Don't call resumeWebTracking if user didn't provide enableTracking
+  code: |
+    mockData.enableTracking = false;
+
+    runCode(mockData);
+
+    assertApi('callInWindow').wasNotCalledWith('braze.enableSDK');
+    assertApi('callInWindow').wasCalledWith('braze.initialize', mockData.apiKey, options);
+    assertApi('callInWindow').wasCalledWith('braze.openSession');
+    assertApi('gtmOnSuccess').wasCalled();
+
+    // pre-4.0
+    mockData.sdkVersion = '3.5';
+
+    runCode(mockData);
+
+    assertApi('callInWindow').wasNotCalledWith('appboy.resumeWebTracking');
     assertApi('callInWindow').wasCalledWith('appboy.initialize', mockData.apiKey, options);
     assertApi('callInWindow').wasCalledWith('appboy.openSession');
     assertApi('gtmOnSuccess').wasCalled();
