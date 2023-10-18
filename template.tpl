@@ -205,6 +205,15 @@ ___TEMPLATE_PARAMETERS___
           }
         ],
         "valueHint": "Defaults to 1800 (30 minutes)"
+      },
+      {
+        "type": "TEXT",
+        "name": "appVersionNumber",
+        "displayName": "App Version Number",
+        "simpleValueType": true,
+        "canBeEmptyString": true,
+        "help": "A numerical app version value which can be used for user segmentation. This value must be sent with four fields, such as \"1.2.3.4\", otherwise it will be ignored. Supported on v4.10.0 and above.",
+        "valueHint": "1.2.3.4"
       }
     ]
   }
@@ -334,6 +343,11 @@ const makeOptions = () => {
 
   if (data.enableSdkAuthentication) {
     options.enableSdkAuthentication = data.enableSdkAuthentication;
+  }
+
+  if (data.appVersionNumber) {
+    options.appVersion = data.appVersionNumber;
+    options.appVersionNumber = data.appVersionNumber;
   }
 
   return options;
@@ -1827,6 +1841,56 @@ scenarios:
 
     runCode(mockData);
 
+
+    // Verify that the tag finished successfully.
+    assertApi('callInWindow').wasCalledWith('braze.initialize', mockData.apiKey, options);
+    assertApi('gtmOnSuccess').wasCalled();
+
+    // pre-4.0
+    mockData.sdkVersion = '3.5';
+
+    runCode(mockData);
+
+    // Verify that the tag finished successfully.
+    assertApi('callInWindow').wasCalledWith('appboy.initialize', mockData.apiKey, options);
+    assertApi('gtmOnSuccess').wasCalled();
+- name: Set appVersionNumber if provided
+  code: |-
+    mockData.appVersionNumber = "1.2.3.4";
+    options.appVersionNumber = "1.2.3.4";
+    options.appVersion = "1.2.3.4";
+
+    mock('callInWindow', function(method, apiKey, options) {
+      if (method === 'braze.initialize' || method === 'appboy.initialize') {
+          assertThat(options.appVersionNumber).isEqualTo("1.2.3.4");
+          assertThat(options.appVersion).isEqualTo("1.2.3.4");
+      }
+    });
+
+    runCode(mockData);
+
+    // Verify that the tag finished successfully.
+    assertApi('callInWindow').wasCalledWith('braze.initialize', mockData.apiKey, options);
+    assertApi('gtmOnSuccess').wasCalled();
+
+    // pre-4.0
+    mockData.sdkVersion = '3.5';
+
+    runCode(mockData);
+
+    // Verify that the tag finished successfully.
+    assertApi('callInWindow').wasCalledWith('appboy.initialize', mockData.apiKey, options);
+    assertApi('gtmOnSuccess').wasCalled();
+- name: Do not set appVersionNumber if not provided
+  code: |-
+    mock('callInWindow', function(method, apiKey, options) {
+      if (method === 'braze.initialize' || method === 'appboy.initialize') {
+          assertThat(options.appVersionNumber).isUndefined();
+          assertThat(options.appVersion).isUndefined();
+      }
+    });
+
+    runCode(mockData);
 
     // Verify that the tag finished successfully.
     assertApi('callInWindow').wasCalledWith('braze.initialize', mockData.apiKey, options);
