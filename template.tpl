@@ -1,12 +1,4 @@
-﻿___TERMS_OF_SERVICE___
-
-By creating or modifying this file you agree to Google Tag Manager's Community
-Template Gallery Developer Terms of Service available at
-https://developers.google.com/tag-manager/gallery-tos (or such other URL as
-Google may provide), as modified from time to time.
-
-
-___INFO___
+﻿___INFO___
 
 {
   "type": "TAG",
@@ -101,6 +93,14 @@ ___TEMPLATE_PARAMETERS___
     "checkboxText": "Enable GTM Template Debugging",
     "simpleValueType": true,
     "help": "This is for debugging the tag template"
+  },
+  {
+    "type": "CHECKBOX",
+    "name": "enableAutomaticSessionOpening",
+    "checkboxText": "Enable Automatic Session Opening",
+    "simpleValueType": true,
+    "help": "Automatically opens a new session after the GTM script is loaded",
+    "defaultValue": true
   },
   {
     "type": "GROUP",
@@ -282,8 +282,10 @@ const onSuccess = () => {
         callInWindow(sdkObject + '.display.automaticallyShowNewInAppMessages');
       }
     }
-
-    callInWindow(sdkObject + '.openSession');
+    
+    if (data.enableAutomaticSessionOpening) {
+      callInWindow(sdkObject + '.openSession');
+    }
   }
   data.gtmOnSuccess();
 };
@@ -1904,6 +1906,15 @@ scenarios:
     // Verify that the tag finished successfully.
     assertApi('callInWindow').wasCalledWith('appboy.initialize', mockData.apiKey, options);
     assertApi('gtmOnSuccess').wasCalled();
+- name: Do not call openSession if enableAutomaticSessionOpening is set to false
+  code: |-
+    mockData.enableAutomaticSessionOpening = false;
+
+    runCode(mockData);
+
+    assertApi('callInWindow').wasCalledWith('braze.initialize', mockData.apiKey, options);
+    assertApi('callInWindow').wasNotCalledWith('braze.openSession');
+    assertApi('gtmOnSuccess').wasCalled();
 setup: |-
   const log = require('logToConsole');
   const encodeUriComponent = require('encodeUriComponent');
@@ -1912,7 +1923,8 @@ setup: |-
     // Mocked field values
     apiKey:'my api key',
     sdkVersion:'4.0',
-    baseUrl: 'testExample.com'
+    baseUrl: 'testExample.com',
+    enableAutomaticSessionOpening: true
   };
 
   const scriptUrl = 'https://js.appboycdn.com/web-sdk/' + encodeUriComponent(mockData.sdkVersion) + '/braze.no-amd.min.js';
@@ -1931,3 +1943,5 @@ setup: |-
 ___NOTES___
 
 Created on 6/24/2020, 12:07:33 PM
+
+
