@@ -1,6 +1,8 @@
 homepage: "https://www.braze.com/"
 documentation: "https://github.com/braze-inc/braze-gtm-initialization"
 versions:
+  - sha: 843e92099d9bb3a8b343b727ec26e14535b52c51
+    changeNotes: Added the `enableAutomaticSessionOpening` initialization option
   - sha: fbfc5ef5cecb75c5379e47548659ce2bcfb9b001
     changeNotes: Added the `appVersionNumber` initialization option
   - sha: 15df3f4ca1460b7bd070c16a8bf2fbead4bda016
