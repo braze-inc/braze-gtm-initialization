@@ -1,6 +1,8 @@
 homepage: "https://www.braze.com/"
 documentation: "https://github.com/braze-inc/braze-gtm-initialization"
 versions:
+  - sha: a5aaa5dbca7ad3ce76618c34a67db7467fda96e6
+    changeNotes: Added validation to SDK version field
   - sha: 4a5f14a6ee21165d6926a8f309a0d7e0a5be8938
     changeNotes: Added the `enableAutomaticSessionOpening` initialization option
   - sha: fbfc5ef5cecb75c5379e47548659ce2bcfb9b001

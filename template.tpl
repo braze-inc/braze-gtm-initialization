@@ -36,7 +36,8 @@ ___TEMPLATE_PARAMETERS___
         "type": "NON_EMPTY"
       }
     ],
-    "help": "Enter the app API Key found in your Braze Dashboard"
+    "help": "Enter the app API Key found in your Braze Dashboard",
+    "alwaysInSummary": true
   },
   {
     "type": "TEXT",
@@ -49,14 +50,25 @@ ___TEMPLATE_PARAMETERS___
       }
     ],
     "help": "The API Endpoint differs based on your Braze Instance",
-    "valueHint": "i.e. \"sdk.iad-03.braze.com\" for US-03 cluster"
+    "valueHint": "i.e. \"sdk.iad-03.braze.com\" for US-03 cluster",
+    "alwaysInSummary": true
   },
   {
     "type": "TEXT",
     "name": "sdkVersion",
     "displayName": "SDK Version",
     "simpleValueType": true,
-    "defaultValue": 4.8
+    "defaultValue": 5.8,
+    "alwaysInSummary": true,
+    "valueValidators": [
+      {
+        "type": "REGEX",
+        "args": [
+          "^\\d+\\.\\d+$|latest"
+        ]
+      }
+    ],
+    "help": "Version number as `Major.Minor` (i.e. 5.8)"
   },
   {
     "type": "TEXT",
@@ -85,7 +97,8 @@ ___TEMPLATE_PARAMETERS___
     "checkboxText": "Automatically show new in app messages",
     "simpleValueType": true,
     "help": "Automatically display new in-app messages when they come in from the server.",
-    "defaultValue": true
+    "defaultValue": true,
+    "alwaysInSummary": true
   },
   {
     "type": "CHECKBOX",
@@ -133,7 +146,8 @@ ___TEMPLATE_PARAMETERS___
         "checkboxText": "Enable Web SDK Logging",
         "simpleValueType": true,
         "defaultValue": false,
-        "help": "This is useful when debugging the Web SDK"
+        "help": "This is useful when debugging the Web SDK",
+        "alwaysInSummary": true
       },
       {
         "type": "CHECKBOX",
