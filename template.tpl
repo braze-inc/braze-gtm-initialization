@@ -58,7 +58,7 @@ ___TEMPLATE_PARAMETERS___
     "name": "sdkVersion",
     "displayName": "SDK Version",
     "simpleValueType": true,
-    "defaultValue": 5.8,
+    "defaultValue": 5.9,
     "alwaysInSummary": true,
     "valueValidators": [
       {
@@ -114,6 +114,14 @@ ___TEMPLATE_PARAMETERS___
     "simpleValueType": true,
     "help": "Automatically opens a new session after the SDK is initialized",
     "defaultValue": true
+  },
+  {
+    "type": "CHECKBOX",
+    "name": "openCardsInNewTab",
+    "checkboxText": "Open Cards in New Tab",
+    "simpleValueType": true,
+    "alwaysInSummary": false,
+    "help": "Opens Content Cards links in a new tab when using the default Feed UI"
   },
   {
     "type": "GROUP",
@@ -364,6 +372,10 @@ const makeOptions = () => {
   if (data.appVersionNumber) {
     options.appVersion = data.appVersionNumber;
     options.appVersionNumber = data.appVersionNumber;
+  }
+  
+  if (data.openCardsInNewTab) {
+    options.openCardsInNewTab = data.openCardsInNewTab;
   }
 
   return options;
@@ -1928,6 +1940,55 @@ scenarios:
 
     assertApi('callInWindow').wasCalledWith('braze.initialize', mockData.apiKey, options);
     assertApi('callInWindow').wasNotCalledWith('braze.openSession');
+    assertApi('gtmOnSuccess').wasCalled();
+- name: Sets openCardsInNewTab when provided
+  code: |-
+    mockData.openCardsInNewTab = true;
+    options.openCardsInNewTab = true;
+
+    mock('callInWindow', function(method, apiKey, options) {
+      if (method === 'braze.initialize' || method === 'appboy.initialize') {
+          assertThat(options.openCardsInNewTab).isTrue();
+      }
+    });
+
+    runCode(mockData);
+
+
+    // Verify that the tag finished successfully.
+    assertApi('callInWindow').wasCalledWith('braze.initialize', mockData.apiKey, options);
+    assertApi('gtmOnSuccess').wasCalled();
+
+    // pre-4.0
+    mockData.sdkVersion = '3.5';
+
+    runCode(mockData);
+
+    // Verify that the tag finished successfully.
+    assertApi('callInWindow').wasCalledWith('appboy.initialize', mockData.apiKey, options);
+    assertApi('gtmOnSuccess').wasCalled();
+- name: openCardsInNewTab defaults to undefined
+  code: |-
+    mock('callInWindow', function(method, apiKey, options) {
+      if (method === 'braze.initialize' || method === 'appboy.initialize') {
+          assertThat(options.openCardsInNewTab).isUndefined();
+      }
+    });
+
+    runCode(mockData);
+
+
+    // Verify that the tag finished successfully.
+    assertApi('callInWindow').wasCalledWith('braze.initialize', mockData.apiKey, options);
+    assertApi('gtmOnSuccess').wasCalled();
+
+    // pre-4.0
+    mockData.sdkVersion = '3.5';
+
+    runCode(mockData);
+
+    // Verify that the tag finished successfully.
+    assertApi('callInWindow').wasCalledWith('appboy.initialize', mockData.apiKey, options);
     assertApi('gtmOnSuccess').wasCalled();
 setup: |-
   const log = require('logToConsole');

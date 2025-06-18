@@ -1,6 +1,8 @@
 homepage: "https://www.braze.com/"
 documentation: "https://github.com/braze-inc/braze-gtm-initialization"
 versions:
+  - sha: a44316a15d3388c485f6f73cd3213325d2bb8917
+    changeNotes: Added `openCardsInNewTab` initialization option
   - sha: a5aaa5dbca7ad3ce76618c34a67db7467fda96e6
     changeNotes: Added validation to SDK version field
   - sha: 4a5f14a6ee21165d6926a8f309a0d7e0a5be8938
