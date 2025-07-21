@@ -1,6 +1,8 @@
 homepage: "https://www.braze.com/"
 documentation: "https://github.com/braze-inc/braze-gtm-initialization"
 versions:
+  - sha: 276f623e4ed4424a248b75654633ccac19881797
+    changeNotes: Restored terms of service to template.tpl
   - sha: a44316a15d3388c485f6f73cd3213325d2bb8917
     changeNotes: Added `openCardsInNewTab` initialization option
   - sha: a5aaa5dbca7ad3ce76618c34a67db7467fda96e6
