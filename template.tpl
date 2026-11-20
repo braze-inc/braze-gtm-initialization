@@ -244,6 +244,14 @@ ___TEMPLATE_PARAMETERS___
         "canBeEmptyString": true,
         "help": "A numerical app version value which can be used for user segmentation. This value must be sent with four fields, such as \"1.2.3.4\", otherwise it will be ignored. Supported on v4.10.0 and above.",
         "valueHint": "1.2.3.4"
+      },
+      {
+        "type": "TEXT",
+        "name": "contentSecurityNonce",
+        "displayName": "Content Security Nonce",
+        "simpleValueType": true,
+        "canBeEmptyString": true,
+        "help": "If your site uses a nonce-based Content Security Policy, provide the nonce of the current page as a variable (it changes on every page load, so do not enter a fixed value). The SDK adds it to the scripts and styles it creates. Supported on v2.4.0 and above."
       }
     ]
   }
@@ -384,6 +392,10 @@ const makeOptions = () => {
   
   if (data.openCardsInNewTab) {
     options.openCardsInNewTab = data.openCardsInNewTab;
+  }
+
+  if (data.contentSecurityNonce) {
+    options.contentSecurityNonce = data.contentSecurityNonce;
   }
 
   return options;
@@ -1985,6 +1997,53 @@ scenarios:
 
     runCode(mockData);
 
+
+    // Verify that the tag finished successfully.
+    assertApi('callInWindow').wasCalledWith('braze.initialize', mockData.apiKey, options);
+    assertApi('gtmOnSuccess').wasCalled();
+
+    // pre-4.0
+    mockData.sdkVersion = '3.5';
+
+    runCode(mockData);
+
+    // Verify that the tag finished successfully.
+    assertApi('callInWindow').wasCalledWith('appboy.initialize', mockData.apiKey, options);
+    assertApi('gtmOnSuccess').wasCalled();
+- name: Sets contentSecurityNonce when provided
+  code: |-
+    mockData.contentSecurityNonce = 'abc123';
+    options.contentSecurityNonce = 'abc123';
+
+    mock('callInWindow', function(method, apiKey, options) {
+      if (method === 'braze.initialize' || method === 'appboy.initialize') {
+          assertThat(options.contentSecurityNonce).isEqualTo('abc123');
+      }
+    });
+
+    runCode(mockData);
+
+    // Verify that the tag finished successfully.
+    assertApi('callInWindow').wasCalledWith('braze.initialize', mockData.apiKey, options);
+    assertApi('gtmOnSuccess').wasCalled();
+
+    // pre-4.0
+    mockData.sdkVersion = '3.5';
+
+    runCode(mockData);
+
+    // Verify that the tag finished successfully.
+    assertApi('callInWindow').wasCalledWith('appboy.initialize', mockData.apiKey, options);
+    assertApi('gtmOnSuccess').wasCalled();
+- name: contentSecurityNonce defaults to undefined
+  code: |-
+    mock('callInWindow', function(method, apiKey, options) {
+      if (method === 'braze.initialize' || method === 'appboy.initialize') {
+          assertThat(options.contentSecurityNonce).isUndefined();
+      }
+    });
+
+    runCode(mockData);
 
     // Verify that the tag finished successfully.
     assertApi('callInWindow').wasCalledWith('braze.initialize', mockData.apiKey, options);
